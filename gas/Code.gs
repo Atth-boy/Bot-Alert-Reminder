@@ -3,16 +3,30 @@
  *
  * Deploy:
  *   1. รัน setupSheet() ครั้งเดียวเพื่อสร้าง header + formula column
- *   2. Deploy → New deployment → Web app
+ *   2. ตั้ง API_SECRET ใน Project Settings → Script Properties (สำคัญ! เพื่อกัน abuse)
+ *   3. Deploy → New deployment → Web app
  *      - Execute as: Me
  *      - Who has access: Anyone
- *   3. Copy URL ไปใส่ใน VITE_GAS_URL (frontend) และ GAS_WEB_APP_URL (notifier secret)
+ *   4. Copy URL ไปใส่ใน VITE_GAS_URL (frontend) และ GAS_WEB_APP_URL (notifier secret)
  */
 
 const SHEET_NAME = 'Main_Data';
 const HEADERS = ['Topic', 'Detail', 'Due Date', 'Recipient', 'Status', 'Notification Date', 'Is_Expired'];
 
+function checkAuth(secret) {
+  const expected = PropertiesService.getScriptProperties().getProperty('API_SECRET');
+  if (!expected) return true; // ยังไม่ตั้ง = เปิดให้ใช้ (warn ใน setup)
+  return secret === expected;
+}
+
+function unauthorized() {
+  return jsonResponse({ ok: false, error: 'unauthorized' });
+}
+
 function doGet(e) {
+  const params = (e && e.parameter) || {};
+  if (!checkAuth(params.secret)) return unauthorized();
+
   const sheet = getSheet();
   const data = sheet.getDataRange().getValues();
   if (data.length < 2) return jsonResponse({ data: [] });
@@ -32,8 +46,9 @@ function doGet(e) {
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
-    const action = body.action || 'add';
+    if (!checkAuth(body.secret)) return unauthorized();
 
+    const action = body.action || 'add';
     if (action === 'add') return handleAdd(body);
     if (action === 'delete') return handleDelete(body);
     if (action === 'update') return handleUpdate(body);

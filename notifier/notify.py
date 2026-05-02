@@ -13,15 +13,20 @@ import requests
 
 GAS_URL = os.environ["GAS_WEB_APP_URL"]
 LINE_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+API_SECRET = os.environ.get("API_SECRET", "")
 LINE_PUSH_URL = "https://api.line.me/v2/bot/message/push"
 
 ICT = timezone(timedelta(hours=7))
 
 
 def fetch_tasks():
-    r = requests.get(GAS_URL, timeout=30, allow_redirects=True)
+    params = {"secret": API_SECRET} if API_SECRET else {}
+    r = requests.get(GAS_URL, params=params, timeout=30, allow_redirects=True)
     r.raise_for_status()
-    return r.json().get("data", [])
+    body = r.json()
+    if body.get("error") == "unauthorized":
+        raise RuntimeError("GAS rejected request: unauthorized (check API_SECRET)")
+    return body.get("data", [])
 
 
 def to_date(value):

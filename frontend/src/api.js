@@ -1,10 +1,29 @@
 const GAS_URL = import.meta.env.VITE_GAS_URL || ''
+const KEY = 'api_secret'
+
+export function getSecret() {
+  return localStorage.getItem(KEY) || ''
+}
+
+export function setSecret(value) {
+  if (value) localStorage.setItem(KEY, value)
+  else localStorage.removeItem(KEY)
+}
+
+function urlWithSecret() {
+  const sep = GAS_URL.includes('?') ? '&' : '?'
+  return `${GAS_URL}${sep}secret=${encodeURIComponent(getSecret())}`
+}
 
 export async function fetchTasks() {
   if (!GAS_URL) throw new Error('VITE_GAS_URL is not configured')
-  const r = await fetch(GAS_URL)
+  const r = await fetch(urlWithSecret())
   if (!r.ok) throw new Error(`fetch failed: ${r.status}`)
   const json = await r.json()
+  if (json.error === 'unauthorized') {
+    setSecret('')
+    throw new Error('unauthorized')
+  }
   return json.data || []
 }
 
@@ -12,8 +31,13 @@ export async function addTask(payload) {
   if (!GAS_URL) throw new Error('VITE_GAS_URL is not configured')
   const r = await fetch(GAS_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'add', ...payload })
+    body: JSON.stringify({ action: 'add', secret: getSecret(), ...payload })
   })
   if (!r.ok) throw new Error(`save failed: ${r.status}`)
-  return r.json()
+  const json = await r.json()
+  if (json.error === 'unauthorized') {
+    setSecret('')
+    throw new Error('unauthorized')
+  }
+  return json
 }
