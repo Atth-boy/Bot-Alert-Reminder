@@ -13,8 +13,6 @@ venv/
 env/
 .venv/
 *.egg-info/
-dist/
-build/
 .pytest_cache/
 *.log
 
@@ -23,7 +21,10 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
+
+# Build output
+frontend/dist/
+frontend/dev-dist/
 
 # OS
 .DS_Store
