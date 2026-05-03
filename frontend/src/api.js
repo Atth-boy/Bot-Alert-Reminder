@@ -27,6 +27,21 @@ export async function fetchTasks() {
   return json.data || []
 }
 
+export async function fetchRecipients() {
+  if (!GAS_URL) return []
+  const sep = GAS_URL.includes('?') ? '&' : '?'
+  const url = `${GAS_URL}${sep}action=recipients&secret=${encodeURIComponent(getSecret())}`
+  try {
+    const r = await fetch(url)
+    if (!r.ok) return []
+    const json = await r.json()
+    if (json.error) return []
+    return json.recipients || []
+  } catch {
+    return []
+  }
+}
+
 async function post(action, payload) {
   if (!GAS_URL) throw new Error('VITE_GAS_URL is not configured')
   const r = await fetch(GAS_URL, {

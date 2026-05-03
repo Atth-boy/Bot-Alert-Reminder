@@ -3,9 +3,10 @@ import { ref, onMounted, computed } from 'vue'
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
 import AuthGate from './components/AuthGate.vue'
-import { fetchTasks, deleteTask, markDone, getSecret, setSecret } from './api'
+import { fetchTasks, fetchRecipients, deleteTask, markDone, getSecret, setSecret } from './api'
 
 const tasks = ref([])
+const recipients = ref([])
 const tab = ref('active')
 const loading = ref(false)
 const error = ref('')
@@ -16,7 +17,9 @@ async function refresh() {
   loading.value = true
   error.value = ''
   try {
-    tasks.value = await fetchTasks()
+    const [t, r] = await Promise.all([fetchTasks(), fetchRecipients()])
+    tasks.value = t
+    recipients.value = r
   } catch (e) {
     if (e.message === 'unauthorized') {
       authed.value = false
@@ -75,7 +78,7 @@ onMounted(refresh)
     <AuthGate v-if="!authed" @unlocked="authed = true; refresh()" />
 
     <template v-else>
-      <TaskForm @added="refresh" />
+      <TaskForm :recipients="recipients" @added="refresh" />
 
       <nav class="tabs">
         <button :class="{ active: tab === 'active' }" @click="tab = 'active'">
