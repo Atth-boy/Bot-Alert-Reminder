@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
 import AuthGate from './components/AuthGate.vue'
+import UpdatePrompt from './components/UpdatePrompt.vue'
 import { fetchTasks, fetchRecipients, deleteTask, markDone, getSecret, setSecret } from './api'
 
 const tasks = ref([])
@@ -70,6 +71,7 @@ onMounted(refresh)
 
 <template>
   <div class="container">
+    <UpdatePrompt />
     <header>
       <h1>ระบบแจ้งเตือน LINE</h1>
       <button v-if="authed" class="logout" @click="logout">Logout</button>
