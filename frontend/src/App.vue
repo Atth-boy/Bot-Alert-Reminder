@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import TaskForm from './components/TaskForm.vue'
 import TaskList from './components/TaskList.vue'
 import AuthGate from './components/AuthGate.vue'
-import { fetchTasks, getSecret, setSecret } from './api'
+import { fetchTasks, deleteTask, markDone, getSecret, setSecret } from './api'
 
 const tasks = ref([])
 const tab = ref('active')
@@ -29,6 +29,26 @@ async function refresh() {
   }
 }
 
+async function handleDelete(row) {
+  if (!confirm('ลบรายการนี้?')) return
+  try {
+    await deleteTask(row)
+    await refresh()
+  } catch (e) {
+    error.value = e.message
+  }
+}
+
+async function handleDone(row) {
+  if (!confirm('ทำเครื่องหมายว่าเสร็จแล้ว?')) return
+  try {
+    await markDone(row)
+    await refresh()
+  } catch (e) {
+    error.value = e.message
+  }
+}
+
 function logout() {
   setSecret('')
   authed.value = false
@@ -36,10 +56,10 @@ function logout() {
 }
 
 const active = computed(() =>
-  tasks.value.filter(t => t.Is_Expired !== 'Expired')
+  tasks.value.filter(t => t.Is_Expired !== 'Expired' && t.Status !== 'Done')
 )
-const expired = computed(() =>
-  tasks.value.filter(t => t.Is_Expired === 'Expired')
+const archive = computed(() =>
+  tasks.value.filter(t => t.Is_Expired === 'Expired' || t.Status === 'Done')
 )
 
 onMounted(refresh)
@@ -61,14 +81,19 @@ onMounted(refresh)
         <button :class="{ active: tab === 'active' }" @click="tab = 'active'">
           ระหว่างใช้งาน ({{ active.length }})
         </button>
-        <button :class="{ active: tab === 'expired' }" @click="tab = 'expired'">
-          ผ่าน Due Date ({{ expired.length }})
+        <button :class="{ active: tab === 'archive' }" @click="tab = 'archive'">
+          เสร็จแล้ว / ผ่าน Due Date ({{ archive.length }})
         </button>
       </nav>
 
       <div v-if="error" class="error">{{ error }}</div>
       <div v-else-if="loading" class="loading">กำลังโหลด...</div>
-      <TaskList v-else :tasks="tab === 'active' ? active : expired" />
+      <TaskList
+        v-else
+        :tasks="tab === 'active' ? active : archive"
+        @delete="handleDelete"
+        @done="handleDone"
+      />
     </template>
   </div>
 </template>

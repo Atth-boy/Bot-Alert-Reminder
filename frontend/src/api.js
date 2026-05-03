@@ -27,13 +27,13 @@ export async function fetchTasks() {
   return json.data || []
 }
 
-export async function addTask(payload) {
+async function post(action, payload) {
   if (!GAS_URL) throw new Error('VITE_GAS_URL is not configured')
   const r = await fetch(GAS_URL, {
     method: 'POST',
-    body: JSON.stringify({ action: 'add', secret: getSecret(), ...payload })
+    body: JSON.stringify({ action, secret: getSecret(), ...payload })
   })
-  if (!r.ok) throw new Error(`save failed: ${r.status}`)
+  if (!r.ok) throw new Error(`request failed: ${r.status}`)
   const json = await r.json()
   if (json.error === 'unauthorized') {
     setSecret('')
@@ -41,3 +41,7 @@ export async function addTask(payload) {
   }
   return json
 }
+
+export const addTask = (payload) => post('add', payload)
+export const deleteTask = (row) => post('delete', { row })
+export const markDone = (row) => post('update', { row, status: 'Done' })

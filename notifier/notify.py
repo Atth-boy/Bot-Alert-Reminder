@@ -68,6 +68,8 @@ def main():
             continue
         if t.get("Is_Expired") == "Expired":
             continue
+        if t.get("Status") == "Done":
+            continue
 
         recipient = (t.get("Recipient") or "").strip()
         if not recipient:
