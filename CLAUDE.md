@@ -32,10 +32,12 @@ GitHub Pages            Google Sheets              LINE Messaging API
 |---|---|---|
 | Topic | String | หัวข้อ |
 | Detail | String | รายละเอียด |
-| Due Date | Date | วันครบกำหนด |
+| Due Date | Date | วันครบกำหนด (ทิ้งว่างได้ถ้า recurrence=monthly และไม่มีวันสิ้นสุด) |
 | Recipient | String | ผู้รับแจ้งเตือน (LINE User ID หรือ Group) |
-| Status | String | Active / Expired |
-| Notification Date | Date | Default = Due Date - 1 วัน |
+| Status | String | Active / Done |
+| Notification Date | Date | Default = Due Date - 1 วัน (สำหรับ monthly = วันที่ของเดือนที่จะแจ้ง) |
+| Is_Expired | Formula | Active / Expired (ระบบคำนวณ) |
+| Recurrence | String | `none` (default) หรือ `monthly` |
 
 ---
 

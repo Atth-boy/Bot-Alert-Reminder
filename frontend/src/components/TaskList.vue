@@ -29,7 +29,10 @@ function fmt(v) {
       <p v-if="t.Detail">{{ t.Detail }}</p>
       <small>Due: {{ fmt(t['Due Date']) }} · Notify: {{ fmt(t['Notification Date']) }}</small>
       <small>Recipient: {{ t.Recipient }}</small>
-      <span v-if="t.Status === 'Done'" class="badge done">เสร็จแล้ว</span>
+      <div class="badges">
+        <span v-if="t.Recurrence === 'monthly'" class="badge recurring">ทุกเดือน</span>
+        <span v-if="t.Status === 'Done'" class="badge done">เสร็จแล้ว</span>
+      </div>
     </li>
     <li v-if="!tasks.length" class="empty">ไม่มีรายการ</li>
   </ul>
@@ -60,12 +63,13 @@ function fmt(v) {
 .btn-done:hover { background: #06c755; color: white; border-color: #06c755; }
 .btn-delete { color: #999; }
 .btn-delete:hover { background: #d32f2f; color: white; border-color: #d32f2f; }
+.badges { display: flex; gap: 0.3rem; margin-top: 0.4rem; }
 .badge {
   display: inline-block;
-  margin-top: 0.4rem;
   padding: 0.15rem 0.5rem;
   border-radius: 10px;
   font-size: 0.75rem;
 }
 .badge.done { background: #e8f5e9; color: #06c755; }
+.badge.recurring { background: #e3f2fd; color: #1976d2; }
 </style>

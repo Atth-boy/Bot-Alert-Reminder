@@ -7,6 +7,7 @@ ENV ที่ต้องการ:
 """
 import os
 import sys
+from calendar import monthrange
 from datetime import date, datetime, timezone, timedelta
 
 import requests
@@ -56,6 +57,29 @@ def send_line(to: str, message: str) -> bool:
     return True
 
 
+def should_notify(task, today):
+    if task.get("Status") == "Done":
+        return False
+    if task.get("Is_Expired") == "Expired":
+        return False
+
+    notify_date = to_date(task.get("Notification Date"))
+    if not notify_date:
+        return False
+
+    recurrence = (task.get("Recurrence") or "none").lower()
+
+    if recurrence == "monthly":
+        if today < notify_date:
+            return False
+        target_day = notify_date.day
+        days_in_month = monthrange(today.year, today.month)[1]
+        effective_day = min(target_day, days_in_month)
+        return today.day == effective_day
+
+    return notify_date == today
+
+
 def main():
     today = datetime.now(ICT).date()
     tasks = fetch_tasks()
@@ -63,12 +87,7 @@ def main():
 
     sent = 0
     for t in tasks:
-        notify_on = to_date(t.get("Notification Date"))
-        if notify_on != today:
-            continue
-        if t.get("Is_Expired") == "Expired":
-            continue
-        if t.get("Status") == "Done":
+        if not should_notify(t, today):
             continue
 
         recipient = (t.get("Recipient") or "").strip()
@@ -78,8 +97,9 @@ def main():
 
         due = to_date(t.get("Due Date"))
         due_str = due.isoformat() if due else "-"
+        recur_tag = " (รายเดือน)" if (t.get("Recurrence") or "").lower() == "monthly" else ""
         msg = (
-            f"แจ้งเตือน: {t.get('Topic', '')}\n"
+            f"แจ้งเตือน{recur_tag}: {t.get('Topic', '')}\n"
             f"{t.get('Detail', '')}\n"
             f"ครบกำหนด: {due_str}"
         )

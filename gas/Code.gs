@@ -11,7 +11,7 @@
  */
 
 const SHEET_NAME = 'Main_Data';
-const HEADERS = ['Topic', 'Detail', 'Due Date', 'Recipient', 'Status', 'Notification Date', 'Is_Expired'];
+const HEADERS = ['Topic', 'Detail', 'Due Date', 'Recipient', 'Status', 'Notification Date', 'Is_Expired', 'Recurrence'];
 
 function checkAuth(secret) {
   const expected = PropertiesService.getScriptProperties().getProperty('API_SECRET');
@@ -67,10 +67,14 @@ function handleAdd(body) {
     body.dueDate ? new Date(body.dueDate) : '',
     body.recipient || '',
     body.status || 'Active',
-    body.notificationDate ? new Date(body.notificationDate) : ''
+    body.notificationDate ? new Date(body.notificationDate) : '',
+    '', // column 7 placeholder for Is_Expired formula
+    body.recurrence || 'none'
   ]);
   const lastRow = sheet.getLastRow();
-  sheet.getRange(lastRow, 7).setFormula(`=IF(C${lastRow}<TODAY(),"Expired","Active")`);
+  sheet.getRange(lastRow, 7).setFormula(
+    `=IF(OR(C${lastRow}="",C${lastRow}>=TODAY()),"Active","Expired")`
+  );
   return jsonResponse({ ok: true, row: lastRow });
 }
 
@@ -85,7 +89,8 @@ function handleUpdate(body) {
   const sheet = getSheet();
   const map = {
     topic: 1, detail: 2, dueDate: 3,
-    recipient: 4, status: 5, notificationDate: 6
+    recipient: 4, status: 5, notificationDate: 6,
+    recurrence: 8
   };
   Object.keys(map).forEach(k => {
     if (body[k] !== undefined) {
