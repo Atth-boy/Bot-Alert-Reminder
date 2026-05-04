@@ -36,3 +36,7 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Local-only docs
+CLAUDE.md
+README.md
