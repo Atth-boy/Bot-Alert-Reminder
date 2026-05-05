@@ -68,6 +68,16 @@ def to_date(value):
     return None
 
 
+def mark_done(row: int):
+    data = {"secret": API_SECRET, "action": "update", "row": row, "status": "Done"}
+    try:
+        r = requests.post(GAS_URL, json=data, timeout=30, allow_redirects=True)
+        if r.status_code >= 400:
+            print(f"[warn] mark_done row={row} failed: {r.status_code}", file=sys.stderr)
+    except Exception as e:
+        print(f"[warn] mark_done row={row} error: {e}", file=sys.stderr)
+
+
 def send_line(to: str, message: str) -> bool:
     headers = {
         "Content-Type": "application/json",
@@ -158,6 +168,9 @@ def main():
         else:
             if send_line(recipient, msg):
                 sent += 1
+                recurrence = (t.get("Recurrence") or "none").lower()
+                if recurrence != "monthly":
+                    mark_done(t.get("_row"))
 
     print(f"Sent {sent} notifications")
 
