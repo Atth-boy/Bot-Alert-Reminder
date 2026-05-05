@@ -2,9 +2,9 @@ name: Daily LINE Notifier
 
 on:
   schedule:
-    # GitHub cron บน minute=0 มัก delay/skip — ขยับเป็น minute=17 หลบ contention
-    # 08:17 Asia/Bangkok (UTC+7) = 01:17 UTC
-    - cron: '17 1 * * *'
+    # triggered by cron-job.org via workflow_dispatch — cron นี้เป็น fallback เท่านั้น
+    # 07:20 Asia/Bangkok (UTC+7) = 00:20 UTC
+    - cron: '20 0 * * *'
   workflow_dispatch:
 
 jobs:
