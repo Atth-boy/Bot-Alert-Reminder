@@ -27,5 +27,4 @@ jobs:
           GAS_WEB_APP_URL: ${{ secrets.GAS_WEB_APP_URL }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           API_SECRET: ${{ secrets.API_SECRET }}
-          DEBUG: "1"
         run: python notifier/notify.py
